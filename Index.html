@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Kit</title>
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --text:#111827;
+  --muted:#6b7280;
+  --primary:#4f46e5;
+  --soft:#eef2ff;
+  --border:#e5e7eb;
+}
+
+body{
+  margin:0;
+  font-family:Arial,system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.app{
+  max-width:520px;
+  margin:auto;
+  min-height:100vh;
+  padding-bottom:80px;
+}
+
+header{
+  padding:25px 18px 12px;
+}
+
+.logo{
+  font-size:29px;
+  font-weight:800;
+}
+
+.subtitle{
+  color:var(--muted);
+  font-size:13px;
+  margin-top:4px;
+}
+
+.page{
+  display:none;
+  padding:10px 16px;
+}
+
+.page.active{
+  display:block;
+}
+
+.search{
+  width:100%;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--card);
+  outline:none;
+  margin-bottom:15px;
+}
+
+.section-title{
+  font-size:16px;
+  font-weight:800;
+  margin:18px 2px 10px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:15px;
+  box-shadow:0 5px 20px rgba(0,0,0,.04);
+}
+
+.tool{
+  min-height:110px;
+  position:relative;
+}
+
+.icon{
+  width:45px;
+  height:45px;
+  border-radius:13px;
+  background:var(--soft);
+  display:grid;
+  place-items:center;
+  font-size:23px;
+  margin-bottom:9px;
+}
+
+.tool b{
+  display:block;
+}
+
+.tool small{
+  color:var(--muted);
+}
+
+.favorite{
+  position:absolute;
+  top:9px;
+  right:10px;
+  background:none;
+  border:0;
+  font-size:20px;
+  cursor:pointer;
+}
+
+input,textarea,select{
+  width:100%;
+  padding:13px;
+  margin:5px 0;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--card);
+  color:var(--text);
+  outline:none;
+}
+
+button{
+  cursor:pointer;
+}
+
+.primary{
+  padding:12px 16px;
+  border:0;
+  border-radius:12px;
+  background:var(--primary);
+  color:white;
+  font-weight:700;
+}
+
+.secondary{
+  padding:10px 14px;
+  border:0;
+  border-radius:10px;
+  background:var(--soft);
+  color:var(--primary);
+  font-weight:700;
+}
+
+.result{
+  background:var(--soft);
+  padding:15px;
+  border-radius:14px;
+  font-size:22px;
+  font-weight:800;
+  margin:10px 0;
+}
+
+.item{
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:12px;
+  border-radius:12px;
+  margin:8px 0;
+}
+
+.delete{
+  float:right;
+  border:0;
+  background:#fee2e2;
+  color:#b91c1c;
+  padding:6px 9px;
+  border-radius:8px;
+}
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(520px,100%);
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  background:var(--card);
+  border-top:1px solid var(--border);
+  padding:7px;
+  z-index:10;
+}
+
+.nav{
+  border:0;
+  background:none;
+  color:var(--muted);
+  font-size:11px;
+  padding:5px;
+}
+
+.nav span{
+  display:block;
+  font-size:21px;
+  margin-bottom:3px;
+}
+
+.nav.active{
+  color:var(--primary);
+  font-weight:800;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:flex-end;
+  z-index:20;
+}
+
+.modal.active{
+  display:flex;
+}
+
+.sheet{
+  background:var(--bg);
+  width:min(520px,100%);
+  max-height:90vh;
+  overflow:auto;
+  border-radius:24px 24px 0 0;
+  padding:18px;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.between{
+  justify-content:space-between;
+}
+
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:25px;
+}
+
+.dark{
+  --bg:#0b1220;
+  --card:#111827;
+  --text:#f9fafb;
+  --muted:#9ca3af;
+  --border:#243044;
+  --soft:#1e293b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="logo">Daily Kit</div>
+  <div class="subtitle">All your daily tools in one place</div>
+</header>
+
+<!-- HOME -->
+<section id="home" class="page active">
+
+<input
+  id="search"
+  class="search"
+  placeholder="🔍 Search tools..."
+  oninput="render()"
+>
+
+<div class="section-title">Quick Actions</div>
+<div id="quickTools" class="grid"></div>
+
+<div class="section-title">All Tools</div>
+<div id="homeTools" class="grid"></div>
+
+</section>
+
+<!-- TOOLS -->
+<section id="tools" class="page">
+
+<div class="section-title">🧰 All Tools</div>
+<div id="allTools" class="grid"></div>
+
+</section>
+
+<!-- FAVORITES -->
+<section id="favorites" class="page">
+
+<div class="section-title">⭐ Favorites</div>
+<div id="favoriteTools" class="grid"></div>
+
+</section>
+
+<!-- SETTINGS -->
+<section id="settings" class="page">
+
+<div class="section-title">⚙️ Settings</div>
+
+<div class="card">
+
+<div class="row between">
+<b>🌙 Dark Mode</b>
+<button class="secondary" onclick="toggleDark()">Toggle</button>
+</div>
+
+</div>
+
+<div class="section-title">About</div>
+
+<div class="card">
+<b>Daily Kit</b>
+<p class="subtitle">
+Useful everyday tools in one simple app.
+</p>
+<p>Version 1.0</p>
+</div>
+
+</section>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+
+<button class="nav active" onclick="showPage('home',this)">
+<span>🏠</span>Home
+</button>
+
+<button class="nav" onclick="showPage('tools',this)">
+<span>🧰</span>Tools
+</button>
+
+<button class="nav" onclick="showPage('favorites',this)">
+<span>⭐</span>Favorites
+</button>
+
+<button class="nav" onclick="showPage('settings',this)">
+<span>⚙️</span>Settings
+</button>
+
+</nav>
+
+</div>
+
+
+<!-- MODAL -->
+
+<div id="modal" class="modal" onclick="closeOutside(event)">
+
+<div class="sheet" id="sheet"></div>
+
+</div>
+
+
+<script>
+
+const tools=[
+
+{
+ id:"calculator",
+ icon:"🧮",
+ name:"Calculator",
+ desc:"Fast calculations"
+},
+
+{
+ id:"expense",
+ icon:"💰",
+ name:"Expense Tracker",
+ desc:"Track your spending"
+},
+
+{
+ id:"todo",
+ icon:"✅",
+ name:"To-Do List",
+ desc:"Manage your tasks"
+},
+
+{
+ id:"notes",
+ icon:"📝",
+ name:"Notes",
+ desc:"Save quick notes"
+},
+
+{
+ id:"reminder",
+ icon:"⏰",
+ name:"Reminder",
+ desc:"Save reminders"
+},
+
+{
+ id:"age",
+ icon:"🎂",
+ name:"Age Calculator",
+ desc:"Calculate exact age"
+},
+
+{
+ id:"emi",
+ icon:"💳",
+ name:"EMI Calculator",
+ desc:"Calculate loan EMI"
+},
+
+{
+ id:"unit",
+ icon:"📏",
+ name:"Unit Converter",
+ desc:"Convert units"
+},
+
+{
+ id:"percentage",
+ icon:"🔢",
+ name:"Percentage",
+ desc:"Calculate percentage"
+},
+
+{
+ id:"date",
+ icon:"📅",
+ name:"Date Calculator",
+ desc:"Calculate date difference"
+}
+
+];
+
+
+let data=JSON.parse(
+localStorage.getItem("dailyKitData") || "{}"
+);
+
+data.favorites ??=[];
+data.expenses ??=[];
+data.todos ??=[];
+data.notes ??=[];
+data.reminders ??=[];
+
+
+function saveData(){
+
+localStorage.setItem(
+"dailyKitData",
+JSON.stringify(data)
+);
+
+}
+
+
+function toolCard(tool){
+
+return `
+
+<div class="card tool">
+
+<button
+class="favorite"
+onclick="event.stopPropagation();toggleFavorite('${tool.id}')">
+
+${data.favorites.includes(tool.id) ? "★":"☆"}
+
+</button>
+
+<div onclick="openTool('${tool.id}')">
+
+<div class="icon">
+${tool.icon}
+</div>
+
+<b>${tool.name}</b>
+
+<small>
+${tool.desc}
+</small>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+function render(){
+
+let query=
+(document.getElementById("search").value || "")
+.toLowerCase();
+
+let filtered=tools.filter(
+t=>t.name.toLowerCase().includes(query)
+);
+
+document.getElementById("quickTools").innerHTML=
+tools.slice(0,4).map(toolCard).join("");
+
+document.getElementById("homeTools").innerHTML=
+filtered.map(toolCard).join("");
+
+document.getElementById("allTools").innerHTML=
+tools.map(toolCard).join("");
+
+let favorites=
+tools.filter(t=>data.favorites.includes(t.id));
+
+document.getElementById("favoriteTools").innerHTML=
+favorites.length
+?favorites.map(toolCard).join("")
+:`<div class="empty">No favorite tools yet.</div>`;
+
+}
+
+
+function toggleFavorite(id){
+
+if(data.favorites.includes(id)){
+
+data.favorites=
+data.favorites.filter(x=>x!==id);
+
+}else{
+
+data.favorites.push(id);
+
+}
+
+saveData();
+render();
+
+}
+
+
+function showPage(id,button){
+
+document
+.querySelectorAll(".page")
+.forEach(p=>p.classList.remove("active"));
+
+document
+.getElementById(id)
+.classList.add("active");
+
+document
+.querySelectorAll(".nav")
+.forEach(n=>n.classList.remove("active"));
+
+button.classList.add("active");
+
+}
+
+
+function openTool(id){
+
+let html="";
+
+if(id==="calculator") html=calculator();
+
+if(id==="expense") html=expense();
+
+if(id==="todo") html=todo();
+
+if(id==="notes") html=notes();
+
+if(id==="reminder") html=reminder();
+
+if(id==="age") html=age();
+
+if(id==="emi") html=emi();
+
+if(id==="unit") html=unit();
+
+if(id==="percentage") html=percentage();
+
+if(id==="date") html=dateCalculator();
+
+document.getElementById("sheet").innerHTML=
+
+`<div class="row between">
+<h2>${tools.find(t=>t.id===id).icon}
+${tools.find(t=>t.id===id).name}</h2>
+
+<button class="secondary"
+onclick="closeModal()">Close</button>
+</div>
+
+${html}`;
+
+document.getElementById("modal")
+.classList.add("active");
+
+if(id==="expense") renderExpenses();
+if(id==="todo") renderTodos();
+if(id==="notes") renderNotes();
+if(id==="reminder") renderReminders();
+
+}
+
+
+function closeModal(){
+
+document
+.getElementById("modal")
+.classList.remove("active");
+
+}
+
+
+function closeOutside(e){
+
+if(e.target.id==="modal") closeModal();
+
+}
+
+
+/* CALCULATOR */
+
+function calculator(){
+
+return `
+
+<input
+id="calcDisplay"
+class="result"
+value="0"
+readonly
+>
+
+<div class="grid">
+
+${[
+"7","8","9","/",
+"4","5","6","*",
+"1","2","3","-",
+"0",".","%","+",
+"C","="
+].map(x=>
+
+`<button
+class="primary"
+onclick="calcKey('${x}')">
+${x}
+</button>`
+
+).join("")}
+
+</div>
+
+`;
+
+}
+
+
+function calcKey(key){
+
+let d=document.getElementById("calcDisplay");
+
+if(key==="C"){
+
+d.value="0";
+
+return;
+
+}
+
+if(key==="="){
+
+try{
+
+d.value=
+Function(
+"return "+d.value
+.replace("%","/100")
+)();
+
+}catch{
+
+d.value="Error";
+
+}
+
+return;
+
+}
+
+if(d.value==="0" && key!==".")
+d.value=key;
+
+else
+d.value+=key;
+
+}
+
+
+/* EXPENSE */
+
+function expense(){
+
+return `
+
+<input
+id="expenseName"
+placeholder="Expense name"
+>
+
+<input
+id="expenseAmount"
+type="number"
+placeholder="Amount"
+>
+
+<select id="expenseCategory">
+
+<option>Food</option>
+<option>Travel</option>
+<option>Shopping</option>
+<option>Bills</option>
+<option>Other</option>
+
+</select>
+
+<button class="primary"
+onclick="addExpense()">
+Add Expense
+</button>
+
+<div class="section-title">
+Expenses
+</div>
+
+<div id="expenseList"></div>
+
+`;
+
+}
+
+
+function addExpense(){
+
+let name=
+document.getElementById("expenseName").value;
+
+let amount=
+Number(document.getElementById("expenseAmount").value);
+
+let category=
+document.getElementById("expenseCategory").value;
+
+if(!name || !amount){
+
+alert("Enter expense name and amount");
+
+return;
+
+}
+
+data.expenses.push({
+name,
+amount,
+category
+});
+
+saveData();
+renderExpenses();
+
+}
+
+
+function renderExpenses(){
+
+let total=0;
+
+let html="";
+
+data.expenses.forEach((e,i)=>{
+
+total+=e.amount;
+
+html+=`
+
+<div class="item">
+
+<b>${e.name}</b>
+<br>
+
+₹${e.amount}
+ · ${e.category}
+
+<button
+class="delete"
+onclick="deleteExpense(${i})">
+×
+</button>
+
+</div>
+
+`;
+
+});
+
+html+=`
+
+<div class="result">
+Total: ₹${total.toFixed(2)}
+</div>
+
+`;
+
+document.getElementById("expenseList")
+.innerHTML=html;
+
+}
+
+
+function deleteExpense(i){
+
+data.expenses.splice(i,1);
+
+saveData();
+renderExpenses();
+
+}
+
+
+/* TODO */
+
+function todo(){
+
+return `
+
+<div class="row">
+
+<input
+id="taskInput"
+placeholder="Add a task"
+>
+
+<button class="primary"
+onclick="addTodo()">
+Add
+</button>
+
+</div>
+
+<div id="todoList"></div>
+
+`;
+
+}
+
+
+function addTodo(){
+
+let task=
+document.getElementById("taskInput").value.trim();
+
+if(!task)return;
+
+data.todos.push({
+text:task,
+done:false
+});
+
+saveData();
+renderTodos();
+
+document.getElementById("taskInput").value="";
+
+}
+
+
+function renderTodos(){
+
+let html="";
+
+data.todos.forEach((t,i)=>{
+
+html+=`
+
+<div class="item">
+
+<span
+onclick="toggleTodo(${i})"
+style="
+text-decoration:
+${t.done?"line-through":"none"};
+cursor:pointer">
+
+${t.done?"☑️":"⬜"} ${t.text}
+
+</span>
+
+<button
+class="delete"
+onclick="deleteTodo(${i})">
+×
+</button>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("todoList").innerHTML=
+html || `<div class="empty">No tasks yet.</div>`;
+
+}
+
+
+function toggleTodo(i){
+
+data.todos[i].done=
+!data.todos[i].done;
+
+saveData();
+renderTodos();
+
+}
+
+
+function deleteTodo(i){
+
+data.todos.splice(i,1);
+
+saveData();
+renderTodos();
+
+}
+
+
+/* NOTES */
+
+function notes(){
+
+return `
+
+<textarea
+id="noteText"
+rows="5"
+placeholder="Write your note...">
+</textarea>
+
+<button
+class="primary"
+onclick="addNote()">
+Save Note
+</button>
+
+<div class="section-title">
+Saved Notes
+</div>
+
+<div id="notesList"></div>
+
+`;
+
+}
+
+
+function addNote(){
+
+let text=
+document.getElementById("noteText")
+.value.trim();
+
+if(!text)return;
+
+data.notes.unshift({
+text,
+date:new Date().toLocaleString()
+});
+
+saveData();
+renderNotes();
+
+document.getElementById("noteText").value="";
+
+}
+
+
+function renderNotes(){
+
+let html="";
+
+data.notes.forEach((n,i)=>{
+
+html+=`
+
+<div class="item">
+
+${n.text}
+
+<br>
+
+<small>${n.date}</small>
+
+<button
+class="delete"
+onclick="deleteNote(${i})">
+Delete
+</button>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("notesList").innerHTML=
+html || `<div class="empty">No notes yet.</div>`;
+
+}
+
+
+function deleteNote(i){
+
+data.notes.splice(i,1);
+
+saveData();
+renderNotes();
+
+}
+
+
+/* REMINDER */
+
+function reminder(){
+
+return `
+
+<input
+id="reminderText"
+placeholder="Reminder title"
+>
+
+<input
+id="reminderTime"
+type="datetime-local"
+>
+
+<button
+class="primary"
+onclick="addReminder()">
+Save Reminder
+</button>
+
+<div class="section-title">
+Saved Reminders
+</div>
+
+<div id="reminderList"></div>
+
+`;
+
+}
+
+
+function addReminder(){
+
+let text=
+document.getElementById("reminderText").value;
+
+let time=
+document.getElementById("reminderTime").value;
+
+if(!text || !time){
+
+alert("Enter reminder and time");
+
+return;
+
+}
+
+data.reminders.push({
+text,
+time
+});
+
+saveData();
+renderReminders();
+
+}
+
+
+function renderReminders(){
+
+let html="";
+
+data.reminders.forEach((r,i)=>{
+
+html+=`
+
+<div class="item">
+
+⏰ <b>${r.text}</b>
+
+<br>
+
+<small>
+${new Date(r.time).toLocaleString()}
+</small>
+
+<button
+class="delete"
+onclick="deleteReminder(${i})">
+×
+</button>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("reminderList").innerHTML=
+html || `<div class="empty">No reminders.</div>`;
+
+}
+
+
+function deleteReminder(i){
+
+data.reminders.splice(i,1);
+
+saveData();
+renderReminders();
+
+}
+
+
+/* AGE */
+
+function age(){
+
+return `
+
+<input
+id="dob"
+type="date"
+>
+
+<button
+class="primary"
+onclick="calculateAge()">
+Calculate Age
+</button>
+
+<div id="ageResult"></div>
+
+`;
+
+}
+
+
+function calculateAge(){
+
+let dob=
+new Date(document.getElementById("dob").value);
+
+let today=new Date();
+
+let years=
+today.getFullYear()-dob.getFullYear();
+
+let months=
+today.getMonth()-dob.getMonth();
+
+let days=
+today.getDate()-dob.getDate();
+
+if(days<0){
+
+months--;
+days+=30;
+
+}
+
+if(months<0){
+
+years--;
+months+=12;
+
+}
+
+document.getElementById("ageResult")
+.innerHTML=
+
+`<div class="result">
+${years} Years<br>
+<small>${months} Months · ${days} Days</small>
+</div>`;
+
+}
+
+
+/* EMI */
+
+function emi(){
+
+return `
+
+<input
+id="loan"
+type="number"
+placeholder="Loan amount"
+>
+
+<input
+id="interest"
+type="number"
+placeholder="Annual interest %"
+>
+
+<input
+id="tenure"
+type="number"
+placeholder="Tenure in years"
+>
+
+<button
+class="primary"
+onclick="calculateEMI()">
+Calculate EMI
+</button>
+
+<div id="emiResult"></div>
+
+`;
+
+}
+
+
+function calculateEMI(){
+
+let P=
+Number(document.getElementById("loan").value);
+
+let annual=
+Number(document.getElementById("interest").value);
+
+let years=
+Number(document.getElementById("tenure").value);
+
+let r=annual/1200;
+
+let n=years*12;
+
+let emi;
+
+if(r===0){
+
+emi=P/n;
+
+}else{
+
+emi=
+P*r*Math.pow(1+r,n)/
+(Math.pow(1+r,n)-1);
+
+}
+
+let total=emi*n;
+
+document.getElementById("emiResult")
+.innerHTML=
+
+`<div class="result">
+Monthly EMI: ₹${emi.toFixed(2)}
+<br>
+<small>
+Total Payment: ₹${total.toFixed(2)}
+<br>
+Total Interest: ₹${(total-P).toFixed(2)}
+</small>
+</div>`;
+
+}
+
+
+/* UNIT CONVERTER */
+
+function unit(){
+
+return `
+
+<input
+id="unitValue"
+type="number"
+placeholder="Value"
+>
+
+<select id="unitFrom">
+
+<option value="1">Meter</option>
+<option value="1000">Kilometer</option>
+<option value=".01">Centimeter</option>
+<option value=".3048">Feet</option>
+<option value=".0254">Inch</option>
+
+</select>
+
+<select id="unitTo">
+
+<option value="1">Meter</option>
+<option value="1000">Kilometer</option>
+<option value=".01">Centimeter</option>
+<option value=".3048">Feet</option>
+<option value=".0254">Inch</option>
+
+</select>
+
+<button
+class="primary"
+onclick="convertUnit()">
+Convert
+</button>
+
+<div id="unitResult"></div>
+
+`;
+
+}
+
+
+function convertUnit(){
+
+let value=
+Number(document.getElementById("unitValue").value);
+
+let from=
+Number(document.getElementById("unitFrom").value);
+
+let to=
+Number(document.getElementById("unitTo").value);
+
+let result=
+value*from/to;
+
+document.getElementById("unitResult")
+.innerHTML=
+`<div class="result">${result.toFixed(4)}</div>`;
+
+}
+
+
+/* PERCENTAGE */
+
+function percentage(){
+
+return `
+
+<input
+id="percent"
+type="number"
+placeholder="Percentage"
+>
+
+<input
+id="percentNumber"
+type="number"
+placeholder="Number"
+>
+
+<button
+class="primary"
+onclick="calculatePercentage()">
+Calculate
+</button>
+
+<div id="percentResult"></div>
+
+`;
+
+}
+
+
+function calculatePercentage(){
+
+let p=
+Number(document.getElementById("percent").value);
+
+let n=
+Number(document.getElementById("percentNumber").value);
+
+document.getElementById("percentResult")
+.innerHTML=
+`<div class="result">
+${(p*n/100).toFixed(2)}
+</div>`;
+
+}
+
+
+/* DATE */
+
+function dateCalculator(){
+
+return `
+
+<input
+id="date1"
+type="date"
+>
+
+<input
+id="date2"
+type="date"
+>
+
+<button
+class="primary"
+onclick="calculateDate()">
+Calculate Difference
+</button>
+
+<div id="dateResult"></div>
+
+`;
+
+}
+
+
+function calculateDate(){
+
+let d1=
+new Date(document.getElementById("date1").value);
+
+let d2=
+new Date(document.getElementById("date2").value);
+
+let days=
+Math.abs(
+Math.round((d2-d1)/86400000)
+);
+
+document.getElementById("dateResult")
+.innerHTML=
+`<div class="result">
+${days} Days
+</div>`;
+
+}
+
+
+/* DARK MODE */
+
+function toggleDark(){
+
+document.body.classList.toggle("dark");
+
+}
+
+render();
+
+</script>
+
+</body>
+  </html>
